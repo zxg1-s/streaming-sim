@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Streamlabs Desktop</title>
+  <title>KEVINDBLIVE - Streamlabs Desktop</title>
   <style>
     :root { --purple: #8B00FF; }
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -130,8 +130,8 @@
     <div class="preview" id="previewArea">
       <video id="screenMirror" autoplay playsinline></video>
       
-      <img id="mascot1" src="https://i.imgur.com/yourpurplecat.png" class="mascot bottom-left" alt="">
-      <img id="mascot2" src="https://i.imgur.com/yourpurplecat.png" class="mascot top-right" alt="">
+      <img id="mascot1" src="https://i.imgur.com/yourpurplecat.png" class="mascot bottom-left" alt="Mascot">
+      <img id="mascot2" src="https://i.imgur.com/yourpurplecat.png" class="mascot top-right" alt="Mascot">
     </div>
 
     <div class="sidebar">
@@ -142,7 +142,7 @@
 
   <div class="bottom-bar">
     <div>1.1% CPU • 60 FPS • <span id="currentScene">Main Scene</span></div>
-    <div id="streamTitle">Chill Vibes • Come hang out 💜</div>
+    <div id="streamTitle">Chill Vibes • Hanging Out</div>
     <button onclick="endStream()" style="background:#c00;color:white;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;">
       End Stream
     </button>
@@ -152,18 +152,17 @@
     let video = document.getElementById('screenMirror');
     let currentScene = 1;
 
+    // Screen Mirroring
     async function startScreenMirror() {
       try {
-        const stream = await navigator.mediaDevices.getDisplayMedia({ 
-          video: { cursor: "always" }, 
-          audio: false 
-        });
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
         video.srcObject = stream;
-      } catch (e) {}
+      } catch (e) { console.log("Screen share cancelled"); }
     }
 
     document.getElementById('previewArea').addEventListener('click', startScreenMirror);
 
+    // Real 7TV Emotes
     const emotes = {
       poggers: "https://cdn.7tv.app/emote/60ae4f9c9c5b0c0000000000/2x",
       kekw: "https://cdn.7tv.app/emote/60ae4f9c9c5b0c0000000001/2x",
@@ -174,12 +173,13 @@
       sadge: "https://cdn.7tv.app/emote/60ae4f9c9c5b0c0000000006/2x"
     };
 
+    // Scene-specific reactions
     const sceneReactions = {
-      0: [ // Starting Soon
+      0: [ // Starting Soon - Hype
         {text: "Stream starting!!!", emote: "poggers"},
         {text: "LETS GOOOOO", emote: "poggers"},
-        {text: "Finally! Been waiting", emote: "catjam"},
-        {text: "Hyped af Prayge", emote: "prayge"}
+        {text: "Finally! Been waiting catjam", emote: "catjam"},
+        {text: "Hyped for today Prayge", emote: "prayge"}
       ],
       1: [ // Main Scene
         {text: "KEKW", emote: "kekw"},
@@ -188,15 +188,15 @@
         {text: "OMEGALUL", emote: "omegalul"}
       ],
       2: [ // Chat Only
-        {text: "Chat is so active today", emote: "catjam"},
-        {text: "Love talking with you guys", emote: "prayge"},
-        {text: "This community is great", emote: "poggers"}
+        {text: "Chat is popping off rn", emote: "catjam"},
+        {text: "Talking to chat is the best", emote: "prayge"},
+        {text: "Love this community", emote: "poggers"}
       ],
-      4: [ // Ending Soon
+      4: [ // Ending Soon - Sad
         {text: "Sadge stream ending...", emote: "sadge"},
-        {text: "Nooo already?", emote: "sadge"},
-        {text: "Thanks for the stream", emote: "prayge"},
-        {text: "See you next time Sadge", emote: "sadge"}
+        {text: "Nooo already? Sadge", emote: "sadge"},
+        {text: "Thanks for the stream Prayge", emote: "prayge"},
+        {text: "See you next time", emote: "sadge"}
       ]
     };
 
@@ -218,15 +218,16 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
+    // Auto chat (faster in active scenes)
     setInterval(() => {
       if (currentScene === 0 || currentScene === 1 || currentScene === 2) {
         addChatMessage();
-      } else if (currentScene === 4 && Math.random() > 0.35) {
-        addChatMessage();
+      } else if (currentScene === 4) {
+        if (Math.random() > 0.4) addChatMessage(); // slower sad chat
       }
-    }, 1250);
+    }, 1200);
 
-    // Initial chat messages
+    // Initial messages
     for(let i = 0; i < 12; i++) addChatMessage();
 
     window.switchScene = function(n) {
@@ -237,18 +238,21 @@
       document.getElementById('currentScene').textContent = 
         ["Starting Soon", "Main Scene", "Chat Only", "Be Right Back", "Ending Soon"][n];
 
-      if (n === 0 || n === 4) addChatMessage(n);
+      // Welcome message when switching
+      if (n === 0) addChatMessage(0);
+      if (n === 4) addChatMessage(4);
     };
 
     function endStream() {
-      if (confirm("End Stream?")) {
+      if (confirm("End the stream?")) {
         document.body.innerHTML = `<h1 style="text-align:center; margin-top:20%; color:#ff3366; font-size:3em;">
-          STREAM ENDED<br><br>Thanks for watching 💜
+          STREAM ENDED<br><br>Thanks for watching 💜 Sadge
         </h1>`;
       }
     }
 
-    window.onload = () => setTimeout(startScreenMirror, 600);
+    // Auto start mirroring
+    window.onload = () => setTimeout(startScreenMirror, 700);
   </script>
 </body>
 </html>
