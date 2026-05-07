@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twitch Control Room Pro</title>
+  <style>
+    :root{--bg:#05070d;--panel:#0c1018;--line:rgba(72,89,122,.38);--text:#e8f0ff;--muted:#8ba0c7;--cyan:#3de2ff;--purple:#9c6bff;--good:#4df6a1;--warn:#ff6c7a;--shadow:0 0 36px rgba(61,226,255,.12);--r:22px}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--text);background:radial-gradient(circle at 20% 10%, rgba(156,107,255,.16), transparent 22%),radial-gradient(circle at 80% 15%, rgba(61,226,255,.12), transparent 20%),linear-gradient(180deg,#04050a 0%,#020307 100%);overflow:hidden}
+    .grid{position:fixed;inset:0;background-image:linear-gradient(rgba(61,226,255,.05) 1px, transparent 1px),linear-gradient(90deg, rgba(61,226,255,.05) 1px, transparent 1px);background-size:52px 52px;mask-image:radial-gradient(circle at center, black 30%, transparent 100%);pointer-events:none;opacity:.55}
+    .wrap{min-height:100%;display:grid;place-items:center;padding:14px;position:relative;z-index:1}
+    .app{width:min(1540px,98vw);height:min(940px,96vh);display:grid;grid-template-columns: 300px 1fr 420px;gap:14px}
+    .panel{background:linear-gradient(180deg, rgba(12,16,24,.97), rgba(6,9,15,.97));border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow), inset 0 0 30px rgba(0,0,0,.28);backdrop-filter:blur(10px);overflow:hidden}
+    .side,.right{padding:16px;display:flex;flex-direction:column;gap:14px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .orb{width:15px;height:15px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--purple));box-shadow:0 0 18px var(--cyan);animation:pulse 1.8s infinite}
+    @keyframes pulse{50%{transform:scale(1.4)}}
+    h1,h2,h3,p{margin:0}
+    .title{font-size:28px;letter-spacing:.6px;color:var(--cyan)}
+    .sub{color:var(--muted);font-size:12px;line-height:1.4}
+    .card{background:linear-gradient(180deg, rgba(10,14,20,.95), rgba(8,11,17,.95));border:1px solid rgba(61,226,255,.12);border-radius:18px;padding:14px}
+    .sceneBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .btn{border:none;border-radius:14px;padding:12px;background:linear-gradient(180deg, rgba(61,226,255,.92), rgba(20,153,187,.92));color:#031018;font-weight:900;cursor:pointer;transition:.15s transform,.15s filter}
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+    .btn.secondary{background:#101722;color:var(--text);border:1px solid rgba(61,226,255,.15)}
+    .btn.warn{background:linear-gradient(180deg, rgba(255,108,122,.96), rgba(190,48,63,.96));color:#170409}
+    .label{font-size:12px;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.12em}
+    .row{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:13px;color:var(--muted);margin-top:6px}
+    input[type="text"],select,input[type="range"]{width:100%}
+    input[type="text"],select{background:#0a111a;color:var(--text);border:1px solid rgba(61,226,255,.16);border-radius:12px;padding:12px;outline:none}
+    input[type="range"]{accent-color:var(--cyan)}
+    .toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#0a111a;border:1px solid rgba(61,226,255,.13)}
+    .switch{width:52px;height:28px;border-radius:999px;background:#232a37;position:relative;cursor:pointer;flex:none}.switch.on{background:rgba(61,226,255,.4)} .switch .k{width:22px;height:22px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:.18s} .switch.on .k{left:27px}
+    .main{display:flex;flex-direction:column;padding:16px;gap:14px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .liveDot{width:10px;height:10px;border-radius:50%;background:#ff3562;box-shadow:0 0 16px #ff3562;animation:blink 1s infinite}@keyframes blink{50%{opacity:.25}}
+    .status{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+    .previewShell{position:relative;flex:1;min-height:0;background:#020409;border:1px solid rgba(61,226,255,.12);border-radius:22px;overflow:hidden;box-shadow:inset 0 0 40px rgba(0,0,0,.34)}
+    .previewVideo{width:100%;height:100%;object-fit:cover;background:#000;display:block}
+    .overlay{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.32)),radial-gradient(circle at 50% 40%, rgba(61,226,255,.08), transparent 36%)}
+    .sceneTag{position:absolute;top:16px;left:16px;padding:10px 14px;border-radius:999px;background:rgba(7,10,16,.78);border:1px solid rgba(61,226,255,.18);backdrop-filter:blur(8px);font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+    .sceneBig{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;text-shadow:0 0 22px rgba(61,226,255,.32)}
+    .sceneBig h2{font-size:42px;letter-spacing:.12em;color:#fff}.sceneBig p{margin-top:8px;color:var(--muted)}
+    .hud{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+    .pill{padding:8px 10px;border-radius:999px;background:rgba(9,14,20,.76);border:1px solid rgba(61,226,255,.14);font-size:12px;color:var(--text)}
+    .bottomHud{position:absolute;left:16px;right:16px;bottom:16px;display:flex;justify-content:space-between;align-items:end;gap:10px;flex-wrap:wrap}
+    .bar{height:8px;background:#0a111a;border:1px solid rgba(61,226,255,.12);border-radius:999px;overflow:hidden;width:220px;max-width:40vw}.bar > div{height:100%;width:58%;background:linear-gradient(90deg,var(--purple),var(--cyan));box-shadow:0 0 14px rgba(61,226,255,.35)}
+    .audio{margin-top:8px;padding:10px;border-radius:14px;background:#08101a;border:1px solid rgba(61,226,255,.1)}
+    .audio .meter{height:9px;border-radius:999px;background:#0a111a;overflow:hidden;border:1px solid rgba(61,226,255,.1)}
+    .audio .meter div{height:100%;width:43%;background:linear-gradient(90deg,var(--purple),var(--cyan));animation:wobble 1.3s ease-in-out infinite alternate}
+    @keyframes wobble{from{width:22%}to{width:82%}}
+    .sources{display:grid;gap:8px}
+    .source{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#0a111a;border:1px solid rgba(61,226,255,.1);font-size:13px}
+    .source .dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 10px var(--good)}
+    .chat{flex:1;min-height:0;background:#060b12;border:1px solid rgba(61,226,255,.12);border-radius:18px;padding:12px;overflow:auto;white-space:pre-wrap;line-height:1.35;box-shadow:inset 0 0 22px rgba(0,0,0,.18)}
+    .msg{margin-bottom:10px}.u{color:#fff}.n{color:var(--cyan)}.e{color:#ff88ef}
+    .inputRow{display:grid;grid-template-columns:1fr auto;gap:10px}
+    .quick{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .statGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat{padding:10px;border-radius:14px;background:#0a111a;border:1px solid rgba(61,226,255,.11)}
+    .stat .v{font-size:20px;color:#fff;margin-top:4px}
+    .small{font-size:12px;color:var(--muted)}
+    .timeline{display:grid;gap:8px;max-height:150px;overflow:auto}
+    .tl{padding:10px;border-radius:14px;background:#0a111a;border:1px solid rgba(61,226,255,.1);font-size:12px;color:var(--muted)}
+    .menuTitle{font-size:16px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase}
+    .emoteFloat{position:absolute;right:30px;bottom:28px;font-size:28px;opacity:0;animation:floatup 2.6s ease-out forwards;filter:drop-shadow(0 0 12px rgba(255,255,255,.2))}@keyframes floatup{0%{transform:translateY(0) scale(.85);opacity:0}15%{opacity:1}100%{transform:translateY(-140px) scale(1.2);opacity:0}}
+    .captureHint{font-size:12px;color:var(--muted);line-height:1.4}
+    @media (max-width: 1200px){body{overflow:auto}.app{grid-template-columns:1fr; height:auto; min-height:100vh}.previewShell{min-height:520px}.side,.right{min-height:auto}}
+  </style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="wrap">
+  <div class="app">
+    <aside class="panel side">
+      <div class="brand"><div class="orb"></div><div><h1 class="title">STREAM//CTRL</h1><div class="sub">Twitch-style fake OBS with mirror preview and autonomous chat.</div></div></div>
+      <div class="card">
+        <div class="label">Scenes</div>
+        <div class="sceneBtns">
+          <button class="btn" data-scene="starting">Starting Soon</button>
+          <button class="btn" data-scene="live">Main Scene</button>
+          <button class="btn secondary" data-scene="brb">BRB</button>
+          <button class="btn warn" data-scene="ending">Ending</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="label">Stream Meta</div>
+        <input id="streamTitle" type="text" value="Coding with the homies" />
+        <div style="height:10px"></div>
+        <input id="streamCategory" type="text" value="Just Chatting / Coding" />
+        <div class="row"><span>Viewer count</span><span id="viewerCount">1,284</span></div>
+        <input id="viewerSlider" type="range" min="12" max="5000" value="1284" />
+      </div>
+      <div class="card">
+        <div class="label">Capture</div>
+        <button class="btn" id="startCapture">Mirror Screen / Tab</button>
+        <div style="height:8px"></div>
+        <button class="btn secondary" id="stopCapture">Stop Mirror</button>
+        <p class="captureHint" style="margin-top:10px">Pick a screen/window/tab in the browser picker. That chosen source appears in the preview.</p>
+      </div>
+      <div class="card">
+        <div class="label">Performance</div>
+        <div class="row"><span>Visual intensity</span><span id="intensityLabel">90</span></div>
+        <input id="intensity" type="range" min="0" max="100" value="90" />
+        <div class="toggle" style="margin-top:12px"><span>Emote bursts</span><div class="switch on" id="emoteToggle"><div class="k"></div></div></div>
+        <div class="toggle"><span>Auto speech</span><div class="switch on" id="speechToggle"><div class="k"></div></div></div>
+      </div>
+    </aside>
+
+    <main class="panel main">
+      <div class="topbar">
+        <div class="status"><div class="liveDot"></div><span id="liveState">LIVE</span><span>•</span><span id="uptime">00:00:00</span><span>•</span><span id="sceneState">Main Scene</span></div>
+        <div class="status"><span id="clock">--:--:--</span></div>
+      </div>
+      <div class="previewShell" id="previewShell">
+        <video id="mirror" class="previewVideo" autoplay muted playsinline></video>
+        <div class="overlay"></div>
+        <div class="sceneTag" id="sceneTag">Main Scene</div>
+        <div class="hud">
+          <div class="pill" id="streamTitleLabel">Coding with the homies</div>
+          <div class="pill" id="streamCategoryLabel">Just Chatting / Coding</div>
+          <div class="pill">Chat Rate: <span id="chatRate">Normal</span></div>
+        </div>
+        <div class="sceneBig"><h2 id="sceneBigText">MAIN SCENE</h2><p id="sceneBigSub">Your stream is live, sir.</p></div>
+        <div class="bottomHud">
+          <div>
+            <div class="pill">Viewers: <span id="viewersMini">1,284</span></div>
+            <div style="height:8px"></div>
+            <div class="bar"><div id="progressBar"></div></div>
+          </div>
+          <div class="pill">ON AIR • Twitch-style overlay</div>
+        </div>
+      </div>
+      <div class="inputRow"><input id="chatInput" type="text" placeholder='Type chat. Try "say hi" or "/scene ending"' /><button class="btn" id="sendChat">Send</button></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn secondary" id="clearChat">Clear Chat</button><button class="btn secondary" id="sceneRotate">Auto Cycle</button><button class="btn warn" id="panicBtn">Panic Ending</button></div>
+      <div class="audio"><div class="row"><span>Audio Meter</span><span id="audioLabel">Stream Mix</span></div><div class="meter"><div id="audioFill"></div></div></div>
+      <div class="chat" id="chatBox"></div>
+    </main>
+
+    <aside class="panel right">
+      <div class="card"><div class="menuTitle">Control Room</div><div class="small" style="margin-top:8px">Only the say command is manual. Everything else feels live and automatic.</div></div>
+      <div class="card"><div class="label">OBS Sources</div><div class="sources"><div class="source"><span>Display Capture</span><span class="dot"></span></div><div class="source"><span>Browser Source</span><span class="dot"></span></div><div class="source"><span>Mic / Audio Input</span><span class="dot"></span></div><div class="source"><span>Chat Overlay</span><span class="dot"></span></div></div></div>
+      <div class="card"><div class="label">Quick Commands</div><div class="quick"><button class="btn secondary cmd" data-cmd="say hi">say hi</button><button class="btn secondary cmd" data-cmd="say welcome chat">say welcome chat</button><button class="btn secondary cmd" data-cmd="/scene starting">starting soon</button><button class="btn secondary cmd" data-cmd="/scene live">main scene</button><button class="btn secondary cmd" data-cmd="/scene brb">brb</button><button class="btn secondary cmd" data-cmd="/scene ending">ending</button></div></div>
+      <div class="card"><div class="label">Live Stats</div><div class="statGrid"><div class="stat"><div class="small">Likes</div><div class="v" id="likes">8.4K</div></div><div class="stat"><div class="small">Subs</div><div class="v" id="subs">231</div></div><div class="stat"><div class="small">Hype</div><div class="v" id="hype">97%</div></div><div class="stat"><div class="small">Signal</div><div class="v" id="signal">100%</div></div></div></div>
+      <div class="card"><div class="label">Stream Events</div><div class="timeline" id="timeline"></div></div>
+    </aside>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id), chatBox=$('chatBox'), mirror=$('mirror'), sceneTag=$('sceneTag'), sceneBig=$('sceneBigText'), sceneSub=$('sceneBigSub'), sceneState=$('sceneState'), liveState=$('liveState'), uptimeEl=$('uptime'), clockEl=$('clock'), progressBar=$('progressBar'), chatRate=$('chatRate'), viewerCount=$('viewerCount'), viewersMini=$('viewersMini'), streamTitle=$('streamTitle'), streamCategory=$('streamCategory'), streamTitleLabel=$('streamTitleLabel'), streamCategoryLabel=$('streamCategoryLabel'), intensity=$('intensity'), intensityLabel=$('intensityLabel'), emoteToggle=$('emoteToggle'), speechToggle=$('speechToggle'), likes=$('likes'), subs=$('subs'), hype=$('hype'), signal=$('signal'), timeline=$('timeline'), input=$('chatInput'), audioFill=$('audioFill'), audioLabel=$('audioLabel');
+let scene='live', stream=null, autoCycle=null, autoEmotes=true, autoSpeech=true, started=Date.now(), voices=[], selectedVoice=0, chatTimer=null;
+function logEvent(t){const d=document.createElement('div');d.className='tl';d.textContent=t;timeline.prepend(d);while(timeline.children.length>10)timeline.removeChild(timeline.lastChild)}
+function addMsg(author, text, cls='u'){const div=document.createElement('div');div.className='msg';div.innerHTML=`<span class="${cls}">${author}:</span> ${text}`;chatBox.appendChild(div);chatBox.scrollTop=chatBox.scrollHeight}
+function emoteBurst(){if(!autoEmotes) return; const pool=['PogChamp','Kappa','EZ','LUL','FeelsGoodMan','OMEGALUL','monkaS','PepeHands','7TV W','HYPE']; const em=['🔥','💜','✨','⚡','🚀','💥']; const thing = Math.random()<.55 ? pool[Math.floor(Math.random()*pool.length)] : em[Math.floor(Math.random()*em.length)]; const s=document.createElement('div'); s.className='emoteFloat'; s.textContent=thing; s.style.right=(18+Math.random()*220)+'px'; s.style.fontSize=(18+Math.random()*18)+'px'; document.getElementById('previewShell').appendChild(s); setTimeout(()=>s.remove(),2800)}
+function speak(text){if(!autoSpeech||!window.speechSynthesis) return; const u=new SpeechSynthesisUtterance(text); const v=voices[selectedVoice]; if(v) u.voice=v; u.rate=.92; u.pitch=.95; u.volume=1; speechSynthesis.cancel(); speechSynthesis.speak(u)}
+function loadVoices(){voices=speechSynthesis.getVoices(); if(!voices.length) return; selectedVoice=Math.max(0, voices.findIndex(v=>/google us english|samantha|aria|alloy|david/i.test(v.name)))}
+function scheduleChat(minDelay,maxDelay){clearTimeout(chatTimer); const delay=minDelay + Math.random()*(maxDelay-minDelay); chatTimer=setTimeout(()=>{spawnAutonomousChat(); chatTimer=setInterval(spawnAutonomousChat, 2200 + Math.random()*2200)}, delay)}
+function setScene(next){scene=next; const map={starting:['STARTING SOON','We are warming up, chat.','Starting Soon'],live:['MAIN SCENE','We are live, sir.','Main Scene'],brb:['BRB','Quick break. Stay hydrated.','BRB'],ending:['ENDING','Thanks for hanging out.','Ending']}; const [big,sub,label]=map[next]; sceneBig.textContent=big; sceneSub.textContent=sub; sceneTag.textContent=label; sceneState.textContent=label; liveState.textContent=next==='ending'?'OFFLINE SOON':'LIVE'; progressBar.style.width = next==='starting' ? '20%' : next==='live' ? '72%' : next==='brb' ? '45%' : '88%'; logEvent(`Scene switched to ${label}`); if(next==='starting') scheduleChat(9000, 28000); else if(next==='live') scheduleChat(4500, 12000); else if(next==='brb') scheduleChat(12000, 18000); else scheduleChat(7000, 15000)}
+function spawnAutonomousChat(){const pack={starting:['starting soon lets goooo','PogChamp intro screen','I got snacks for this','can’t wait','stream starting hype'],live:['W stream','we are SO back','based','Kappa','this is sick','chat is cooking','PogChamp'],brb:['brb ok','hydrate check 💧','dont get banned','we back soon','no worries'],ending:['ggs','PepeHands','see you next stream','thanks for the stream','goodnight chat']}; const list=pack[scene]||pack.live; const msg=list[Math.floor(Math.random()*list.length)]; addMsg('chat', msg, 'e'); if(autoEmotes&&Math.random()<.65) emoteBurst(); if(scene==='live'&&Math.random()<.35) addMsg('chat', ['LUL','W','EZ','monkaS','7TV W'][Math.floor(Math.random()*5)], 'e')}
+function parseMessage(raw){const txt=raw.trim(); if(!txt) return; if(txt.startsWith('/scene ')){setScene(txt.split(' ')[1]?.toLowerCase()||'live'); return;} if(txt.startsWith('/emote ')){const e=txt.slice(7).trim(); addMsg('chat', e || 'PogChamp', 'e'); if(autoEmotes) emoteBurst(); speak(e||'PogChamp'); return;} if(txt.toLowerCase().startsWith('say ')){const say=txt.slice(4); addMsg('chat', say, 'u'); speak(say); return;} if(txt.startsWith('/clearchat')){chatBox.innerHTML=''; return;} if(txt.startsWith('/live')){setScene('live'); return;} if(txt.startsWith('/ending')){setScene('ending'); return;} if(txt.startsWith('/starting')){setScene('starting'); return;} if(txt.startsWith('/brb')){setScene('brb'); return;} addMsg('you', txt, 'u'); if(txt.toLowerCase().includes('hello')||txt.toLowerCase().includes('hi')) addMsg('chat','hey hey 👋','e')}
+function updateCounters(){const v=+viewerCount.value||1284; viewerCount.textContent=v.toLocaleString(); viewersMini.textContent=v.toLocaleString(); likes.textContent=(7+Math.floor(v/200)).toFixed(1)+'K'; subs.textContent=Math.max(1,Math.floor(v/6)); hype.textContent=Math.min(100, 60 + Math.floor((+intensity.value/2)))+'%'; signal.textContent=Math.max(78, Math.min(100, 92 + Math.floor(+intensity.value/10)))+'%'; intensityLabel.textContent=intensity.value; streamTitleLabel.textContent=streamTitle.value||'Untitled Stream'; streamCategoryLabel.textContent=streamCategory.value||'Category'; audioFill.style.width=(30 + (+intensity.value*0.6))+'%'; audioLabel.textContent=scene==='ending'?'Stream Mix (fading)':scene==='brb'?'Mic / Music':scene==='starting'?'Waiting Audio':'Live Mix'}
+function uptime(){const s=Math.floor((Date.now()-started)/1000); const h=String(Math.floor(s/3600)).padStart(2,'0'); const m=String(Math.floor((s%3600)/60)).padStart(2,'0'); const sec=String(s%60).padStart(2,'0'); uptimeEl.textContent=`${h}:${m}:${sec}`; clockEl.textContent=new Date().toLocaleTimeString()}
+async function startCapture(){try{const s=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false}); stream=s; mirror.srcObject=s; logEvent('Mirror capture started'); s.getVideoTracks()[0].addEventListener('ended', ()=>stopCapture())}catch(e){addMsg('JARVIS','Capture denied or unavailable.','n')}}
+function stopCapture(){if(stream){stream.getTracks().forEach(t=>t.stop()); stream=null; mirror.srcObject=null; logEvent('Mirror capture stopped')}}
+function cycleScenes(){const order=['starting','live','brb','ending']; let i=0; clearInterval(autoCycle); autoCycle=setInterval(()=>{setScene(order[i%order.length]); i++}, 8500)}
+function panicEnding(){setScene('ending'); addMsg('chat','ggs bye everyone','e'); addMsg('chat','PepeHands final scene','e'); speak('Goodbye, sir. Ending stream now.')}
+function autoplayLoop(){setInterval(()=>{if(scene==='live' && Math.random()<.72) spawnAutonomousChat(); if(scene==='starting' && Math.random()<.45) spawnAutonomousChat(); if(scene==='brb' && Math.random()<.22) spawnAutonomousChat(); if(scene==='ending' && Math.random()<.35) spawnAutonomousChat(); const t=+viewerCount.value + Math.floor((Math.random()-.45)*18); viewerCount.value=Math.max(12,Math.min(5000,t)); updateCounters()}, 2600)}
+$('startCapture').onclick=startCapture; $('stopCapture').onclick=stopCapture; $('sceneRotate').onclick=cycleScenes; $('clearChat').onclick=()=>chatBox.innerHTML=''; $('panicBtn').onclick=panicEnding; $('sendChat').onclick=()=>{parseMessage(input.value); input.value=''; input.focus()}; input.addEventListener('keydown',e=>{if(e.key==='Enter')$('sendChat').click()}); document.querySelectorAll('.cmd').forEach(b=>b.onclick=()=>{input.value=b.dataset.cmd; $('sendChat').click()}); document.querySelectorAll('[data-scene]').forEach(b=>b.onclick=()=>setScene(b.dataset.scene)); $('emoteToggle').onclick=()=>{autoEmotes=!autoEmotes; $('emoteToggle').classList.toggle('on',autoEmotes)}; $('speechToggle').onclick=()=>{autoSpeech=!autoSpeech; $('speechToggle').classList.toggle('on',autoSpeech)}; ['streamTitle','streamCategory','viewerSlider','intensity'].forEach(id=>$(id).addEventListener('input',updateCounters)); speechSynthesis.onvoiceschanged=loadVoices; loadVoices(); setScene('live'); updateCounters(); uptime(); setInterval(uptime,1000); autoplayLoop(); addMsg('JARVIS','Connected and standing by, sir.','n'); addMsg('chat','W stream already','e'); addMsg('chat','PogChamp','e');
+</script>
+</body>
+</html>
